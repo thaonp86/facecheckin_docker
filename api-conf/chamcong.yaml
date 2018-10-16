@@ -1,0 +1,5 @@
+#Khoảng thời gian tối thiểu giữa 2 lần checkin (min)
+min_checkin_period: 15
+
+#Số ngày công tối đa trong tháng, nếu vượt quá thì chuyển cho tháng sau
+max_cong: 26

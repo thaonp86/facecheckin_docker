@@ -1,0 +1,66 @@
+#
+# Copyright IBM Corp All Rights Reserved
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+version: '2'
+
+networks:
+  facecheckin:
+
+services:
+  core.facecheckin.com:
+    container_name: core.facecheckin.com
+    image: thaonp86/facecheckin-core
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - DOMAIN=http://10.198.54.231:31001
+      - CUDA_VISIBLE_DEVICES=""
+      - TZ=Asia/Ho_Chi_Minh
+    ports:
+      - 31001:31001
+      - 31003:31003
+    command: sh -c "echo $${TZ} > /etc/timezone && sh /root/run.sh"
+    volumes:
+      - ./facerecog-conf/config.py:/root/face_system/config.py
+      - ./api-conf:/root/faceapi/conf
+      - ./api-template:/root/faceapi/template
+      - ./session:/root/faceapi/session
+    networks:
+      - facecheckin
+    depends_on:
+      - mongo.facecheckin.com
+    stdin_open: true
+    tty: true
+
+  report.facecheckin.com:
+    container_name: report.facecheckin.com
+    image: thaonp86/facecheckin-report
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - TZ=Asia/Ho_Chi_Minh
+    command: sh -c "echo $${TZ} > /etc/timezone && sh /root/report_service/run_report.sh"
+    volumes:
+      - ./report-conf:/root/report_service/conf
+    networks:
+      - facecheckin
+    depends_on:
+      - mongo.facecheckin.com
+    stdin_open: true
+    tty: true
+
+  mongo.facecheckin.com:
+    container_name: mongo.facecheckin.com
+    image: thaonp86/facecheckin-mongo
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root123456@
+    ports:
+      - 31000:31000
+    volumes:
+      - ./db/:/data/db
+    networks:
+      - facecheckin
+    stdin_open: true
+    tty: true
